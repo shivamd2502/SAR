@@ -1,0 +1,22 @@
+# Ignore datasets and generated images
+masks_seg/
+patches/
+patches_png/
+processed/
+raw/
+seg_to_label/
+
+# Ignore virtual environment
+sar_env/
+
+# Python cache
+__pycache__/
+*.pyc
+
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# OS files
+Thumbs.db
+.DS_Store
