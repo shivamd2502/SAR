@@ -1,0 +1,75 @@
+# ============================================================
+# EOS-04 SAR PROCESSING PIPELINE — REQUIREMENTS & SETUP
+# ============================================================
+
+# Install all dependencies with:
+#   pip install -r requirements.txt
+
+rasterio>=1.3.0       # reads GeoTIFF files with GPS metadata
+numpy>=1.24.0         # array math
+matplotlib>=3.7.0     # visualization
+Pillow>=10.0.0        # image utilities (used by matplotlib)
+
+# Optional but recommended:
+# gdal>=3.6.0         # low-level geospatial operations (rasterio depends on this)
+# scipy>=1.10.0       # for advanced filtering (speckle reduction etc.)
+# scikit-image>=0.21  # for image processing utilities
+
+# ============================================================
+# SETUP INSTRUCTIONS
+# ============================================================
+#
+# 1. Install Python 3.9 or higher
+#
+# 2. Create a virtual environment (recommended):
+#    python -m venv sar_env
+#    sar_env\Scripts\activate        ← Windows
+#    source sar_env/bin/activate     ← Linux/Mac
+#
+# 3. Install dependencies:
+#    pip install -r requirements.txt
+#
+# 4. On Windows, if rasterio install fails, use:
+#    pip install rasterio --find-links https://girder.github.io/large_image_wheels
+#
+# ============================================================
+# HOW TO RUN
+# ============================================================
+#
+# STEP 1 — Open step1_preprocess.py and change BASE_DIR to your
+#          actual ISRO_14 folder path, then run:
+#          python step1_preprocess.py
+#
+# STEP 2 — After step1 finishes, run:
+#          python step2_patch_extraction.py
+#
+# STEP 3 — Visually inspect the results:
+#          python step3_visualize.py
+#
+# ============================================================
+# WHAT EACH SCRIPT PRODUCES
+# ============================================================
+#
+# step1_preprocess.py:
+#   → ISRO_14/processed/E04_SAR_03JUN2026_xxx.npy    ← calibrated scene (H x W x 2)
+#   → ISRO_14/processed/E04_SAR_03JUN2026_xxx_meta.json
+#
+# step2_patch_extraction.py:
+#   → ISRO_14/patches/patch_00000.npy  ← 256×256×2, normalized [0,1]
+#   → ISRO_14/patches/patch_00001.npy
+#   → ISRO_14/patches/patch_index.json ← tracks which scene each patch came from
+#
+# step3_visualize.py:
+#   → ISRO_14/processed/*_overview.png  ← full scene visualization
+#   → ISRO_14/patches/patch_sample_grid.png
+#   → ISRO_14/patches/pixel_distribution.png
+#
+# ============================================================
+# EXPECTED OUTPUT NUMBERS (rough estimate for 4 scenes)
+# ============================================================
+#
+# Scene size: ~10301 × 10201 pixels each
+# With stride=256: ~40 × 39 = ~1560 patches per scene
+# 4 scenes × ~1560 patches = ~6240 patches total
+# Total storage: ~6240 × 0.5 MB = ~3 GB
+# (Reduce by increasing STRIDE in step2, e.g. STRIDE=512 halves the count)
