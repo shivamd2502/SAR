@@ -1,4 +1,4 @@
-# SAR Patch Analysis — ISRO Project (ISRO_14)
+# SAR Patch Analysis 
 
 Deep learning pipeline for analyzing SAR (Synthetic Aperture Radar) image patches. Two models were built: an **image-level classifier** (predicts one label per 256×256 patch) and a **pixel-level segmentation model** (predicts a class for every pixel in a patch).
 
