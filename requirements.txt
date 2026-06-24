@@ -1,75 +1,55 @@
 # ============================================================
-# EOS-04 SAR PROCESSING PIPELINE — REQUIREMENTS & SETUP
+# EOS-04 SAR ML/DL PIPELINE — REQUIREMENTS
 # ============================================================
-
 # Install all dependencies with:
 #   pip install -r requirements.txt
+#
+# If geopandas fails on Windows, use:
+#   pip install geopandas --only-binary :all:
+#
+# If rasterio fails on Windows, use:
+#   pip install rasterio --find-links https://girder.github.io/large_image_wheels
+#
+# Tested on: Python 3.10 / 3.11, Windows 11, CUDA 12.1
+# GPU: NVIDIA GeForce RTX 3050 Laptop GPU
+# ============================================================
 
-rasterio>=1.3.0       # reads GeoTIFF files with GPS metadata
-numpy>=1.24.0         # array math
-matplotlib>=3.7.0     # visualization
-Pillow>=10.0.0        # image utilities (used by matplotlib)
+# ── Core scientific stack ──────────────────────────────────
+numpy>=1.24.0
+pandas>=2.0.0
+scipy>=1.10.0
 
-# Optional but recommended:
-# gdal>=3.6.0         # low-level geospatial operations (rasterio depends on this)
-# scipy>=1.10.0       # for advanced filtering (speckle reduction etc.)
-# scikit-image>=0.21  # for image processing utilities
+# ── Geospatial / SAR data reading ─────────────────────────
+rasterio>=1.3.0          # reads GeoTIFF files with GPS metadata
+geopandas>=0.14.0        # creates shapefiles for QGIS
+shapely>=2.0.0           # geometry (polygon building for shapefiles)
+fiona>=1.9.0             # shapefile I/O backend for geopandas
+pyproj>=3.5.0            # CRS / coordinate reprojection
 
-# ============================================================
-# SETUP INSTRUCTIONS
-# ============================================================
-#
-# 1. Install Python 3.9 or higher
-#
-# 2. Create a virtual environment (recommended):
-#    python -m venv sar_env
-#    sar_env\Scripts\activate        ← Windows
-#    source sar_env/bin/activate     ← Linux/Mac
-#
-# 3. Install dependencies:
-#    pip install -r requirements.txt
-#
-# 4. On Windows, if rasterio install fails, use:
-#    pip install rasterio --find-links https://girder.github.io/large_image_wheels
-#
-# ============================================================
-# HOW TO RUN
-# ============================================================
-#
-# STEP 1 — Open step1_preprocess.py and change BASE_DIR to your
-#          actual ISRO_14 folder path, then run:
-#          python step1_preprocess.py
-#
-# STEP 2 — After step1 finishes, run:
-#          python step2_patch_extraction.py
-#
-# STEP 3 — Visually inspect the results:
-#          python step3_visualize.py
-#
-# ============================================================
-# WHAT EACH SCRIPT PRODUCES
-# ============================================================
-#
-# step1_preprocess.py:
-#   → ISRO_14/processed/E04_SAR_03JUN2026_xxx.npy    ← calibrated scene (H x W x 2)
-#   → ISRO_14/processed/E04_SAR_03JUN2026_xxx_meta.json
-#
-# step2_patch_extraction.py:
-#   → ISRO_14/patches/patch_00000.npy  ← 256×256×2, normalized [0,1]
-#   → ISRO_14/patches/patch_00001.npy
-#   → ISRO_14/patches/patch_index.json ← tracks which scene each patch came from
-#
-# step3_visualize.py:
-#   → ISRO_14/processed/*_overview.png  ← full scene visualization
-#   → ISRO_14/patches/patch_sample_grid.png
-#   → ISRO_14/patches/pixel_distribution.png
-#
-# ============================================================
-# EXPECTED OUTPUT NUMBERS (rough estimate for 4 scenes)
-# ============================================================
-#
-# Scene size: ~10301 × 10201 pixels each
-# With stride=256: ~40 × 39 = ~1560 patches per scene
-# 4 scenes × ~1560 patches = ~6240 patches total
-# Total storage: ~6240 × 0.5 MB = ~3 GB
-# (Reduce by increasing STRIDE in step2, e.g. STRIDE=512 halves the count)
+# ── Image processing ──────────────────────────────────────
+Pillow>=10.0.0           # PNG/JPEG read-write for patches
+
+# ── Deep learning ─────────────────────────────────────────
+torch>=2.1.0             # PyTorch core
+torchvision>=0.16.0      # pretrained models (EfficientNet-B0, ResNet34)
+segmentation-models-pytorch>=0.3.3  # U-Net with pretrained encoders
+
+# ── Visualization ─────────────────────────────────────────
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# ── Machine learning utilities ────────────────────────────
+scikit-learn>=1.3.0      # train_test_split, metrics, confusion matrix
+
+# ── Label Studio mask conversion ──────────────────────────
+label-studio-sdk>=0.0.32 # official RLE brush mask decoder
+
+# ── Excel / CSV label loading ─────────────────────────────
+openpyxl>=3.1.0          # reads .xlsx files if needed
+
+# ── Hugging Face (needed by segmentation-models-pytorch) ──
+huggingface-hub>=0.19.0
+
+# ── Optional but recommended ──────────────────────────────
+# tqdm>=4.65.0           # progress bars (nice to have for long loops)
+# ipykernel>=6.25.0      # if using Jupyter notebooks
