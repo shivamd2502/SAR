@@ -23,7 +23,7 @@ from PIL import Image
 # ─────────────────────────────────────────────
 # CONFIG
 # ─────────────────────────────────────────────
-BASE_DIR    = r"C:\Users\shiva\OneDrive\Documents\ISRO_14"
+BASE_DIR    = os.environ.get("SAR_BASE_DIR", os.path.join(os.path.dirname(__file__), "data"))
 PATCHES_DIR = os.path.join(BASE_DIR, "patches")
 OUTPUT_DIR  = os.path.join(BASE_DIR, "patches_png")
 os.makedirs(OUTPUT_DIR, exist_ok=True)

@@ -87,7 +87,7 @@ import torchvision.models as models
 # =============================================================================
 # CONFIG  — edit paths here to match your machine
 # =============================================================================
-BASE_DIR      = r"D:\ISRO_14"                        # root project folder
+BASE_DIR      = os.environ.get("SAR_BASE_DIR", os.path.join(os.path.dirname(__file__), "data"))
 PATCHES_ROOT  = os.path.join(BASE_DIR, "patches", "03JUN2026")
 MODEL_DIR     = os.path.join(BASE_DIR, "model", "EOS04")
 os.makedirs(MODEL_DIR, exist_ok=True)

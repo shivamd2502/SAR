@@ -27,7 +27,7 @@ from pathlib import Path
 # ─────────────────────────────────────────────
 # CONFIG — change BASE_DIR to your actual path
 # ─────────────────────────────────────────────
-BASE_DIR = r"C:\Users\shiva\OneDrive\Documents\ISRO_14"
+BASE_DIR = os.environ.get("SAR_BASE_DIR", os.path.join(os.path.dirname(__file__), "data"))
 RAW_DIR       = os.path.join(BASE_DIR, "raw")
 PROCESSED_DIR = os.path.join(BASE_DIR, "processed")
 os.makedirs(PROCESSED_DIR, exist_ok=True)

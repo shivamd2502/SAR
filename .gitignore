@@ -5,14 +5,26 @@ patches_png/
 processed/
 raw/
 seg_to_label/
+data/
+
+# Model checkpoints (may be large; re-train or download separately)
+*.pth
+*.pt
+model/
+model_seg/
 
 # Ignore virtual environment
 sar_env/
+.venv/
+venv/
+
+# Environment and secrets
+.env
+.env.*
 
 # Python cache
 __pycache__/
 *.pyc
-
 
 # Jupyter checkpoints
 .ipynb_checkpoints/

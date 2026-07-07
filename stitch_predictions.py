@@ -47,7 +47,7 @@ except ImportError:
 # ─────────────────────────────────────────────
 # CONFIG
 # ─────────────────────────────────────────────
-BASE_DIR       = r"C:\Users\shiva\OneDrive\Documents\ISRO_14"
+BASE_DIR       = os.environ.get("SAR_BASE_DIR", os.path.join(os.path.dirname(__file__), "data"))
 PATCHES_DIR    = os.path.join(BASE_DIR, "patches")
 PATCHES_PNG    = os.path.join(BASE_DIR, "patches_png")
 PROCESSED_DIR  = os.path.join(BASE_DIR, "processed")
@@ -78,7 +78,7 @@ def load_model():
         classes=NUM_CLASSES,
     ).to(DEVICE)
 
-    checkpoint = torch.load(MODEL_PATH, map_location=DEVICE, weights_only=False)
+    checkpoint = torch.load(MODEL_PATH, map_location=DEVICE, weights_only=True)
     model.load_state_dict(checkpoint["model_state_dict"])
     model.eval()
 

@@ -12,7 +12,7 @@ import glob
 import matplotlib.pyplot as plt
 from PIL import Image
 
-BASE_DIR     = r"C:\Users\shiva\OneDrive\Documents\ISRO_14"
+BASE_DIR     = os.environ.get("SAR_BASE_DIR", os.path.join(os.path.dirname(__file__), "data"))
 SEG_IMG_DIR  = os.path.join(BASE_DIR, "seg_to_label")
 MASKS_DIR    = os.path.join(BASE_DIR, "masks_seg")
 
