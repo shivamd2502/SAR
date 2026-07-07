@@ -399,17 +399,21 @@ def extract_patches(
 def records_to_shp(records: list[dict], shp_path: str) -> None:
     """
     Converts the list of patch record dicts to a GeoDataFrame and saves as SHP.
-    The '_crs' key is popped before creating the DataFrame.
+    The '_crs' key is removed (from copies) before creating the DataFrame.
     """
     if not records:
         log.warning("No records to write for %s — skipping.", shp_path)
         return
 
-    crs = records[0].pop("_crs")
-    for r in records[1:]:
-        r.pop("_crs", None)
+    crs = records[0].get("_crs")
+    if crs is None:
+        raise ValueError(
+            f"Records missing '_crs' key — cannot determine CRS for shapefile: {shp_path}"
+        )
+    # Work on copies to avoid mutating the caller's data
+    clean_records = [{k: v for k, v in r.items() if k != "_crs"} for r in records]
 
-    gdf = gpd.GeoDataFrame(records, geometry="geometry", crs=crs)
+    gdf = gpd.GeoDataFrame(clean_records, geometry="geometry", crs=crs)
 
     # SHP attribute names are max 10 chars — rename long keys
     gdf = gdf.rename(columns={
@@ -468,11 +472,13 @@ def main(argv=None):
             return 2
 
     all_records: list[dict] = []   # collects across all composites for master SHP
+    missing_composites: list[str] = []
 
     for spec in registry:
         comp_path = os.path.join(args.composite_dir, spec.filename)
         if not os.path.isfile(comp_path):
             log.warning("Composite not found, skipping: %s", comp_path)
+            missing_composites.append(spec.name)
             continue
 
         log.info("━━ Processing composite: %s", spec.name)
@@ -497,6 +503,14 @@ def main(argv=None):
 
         # accumulate for master SHP
         all_records.extend(records)
+
+    if missing_composites:
+        log.warning("Missing composites (%d/%d): %s",
+                    len(missing_composites), len(registry), missing_composites)
+    if not all_records and missing_composites:
+        log.error("No composites were processed successfully. "
+                  "Check composite_dir: %s", args.composite_dir)
+        return 2
 
     # master SHP — all composites in one file for cross-comparison
     if all_records:

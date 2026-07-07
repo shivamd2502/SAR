@@ -326,18 +326,29 @@ def read_grid_file(path: str) -> Dict[str, np.ndarray]:
     incidence_angle.
     """
     rows = []
+    skipped_lines = 0
     with open(path, "r", errors="replace") as fh:
-        for line in fh:
+        for line_no, line in enumerate(fh, 1):
             parts = line.split()
             if len(parts) < 5:
+                skipped_lines += 1
                 continue
             try:
                 rows.append([float(x) for x in parts[:6]])
             except ValueError:
-                continue  # header line
+                skipped_lines += 1
+                continue  # header or malformed line
+    if not rows:
+        raise ValueError(
+            f"No valid data rows found in grid file {path} "
+            f"({skipped_lines} lines skipped as non-numeric/header)"
+        )
     data = np.array(rows)
     if data.shape[1] < 5:
         raise ValueError(f"Unexpected grid file format in {path}")
+    if skipped_lines > 2:
+        log.warning("Grid file %s: %d lines skipped (expected <=2 header lines)",
+                    path, skipped_lines)
     out = {
         "scan": data[:, 0],
         "pixel": data[:, 1],

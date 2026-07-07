@@ -13,6 +13,7 @@ Output: ISRO_14/patches/
 """
 
 import os
+import sys
 import numpy as np
 import glob
 import json
@@ -106,7 +107,7 @@ def main():
     if not npy_files:
         print(f"ERROR: No .npy files found in {PROCESSED_DIR}")
         print("Run step1_preprocess.py first!")
-        return
+        sys.exit(1)
 
     print(f"Found {len(npy_files)} processed scene(s):")
     for f in npy_files:
@@ -121,7 +122,11 @@ def main():
         print(f"Extracting patches from: {scene_name}")
         print(f"{'='*60}")
 
-        patches = extract_patches_from_scene(npy_path, PATCH_SIZE, STRIDE)
+        try:
+            patches = extract_patches_from_scene(npy_path, PATCH_SIZE, STRIDE)
+        except Exception as e:
+            print(f"\n[ERROR] Failed to extract patches from {scene_name}: {e}")
+            sys.exit(1)
 
         for patch_norm, row, col in patches:
             patch_id = f"patch_{patch_counter:05d}"
@@ -142,6 +147,11 @@ def main():
             patch_counter += 1
 
         print(f"  → Saved {len(patches)} patches from this scene.")
+
+    if patch_counter == 0:
+        print("\nERROR: No valid patches extracted from any scene.")
+        print("Check MIN_VALID_FRACTION setting or input data quality.")
+        sys.exit(1)
 
     # Save the patch index
     index_path = os.path.join(PATCHES_DIR, "patch_index.json")

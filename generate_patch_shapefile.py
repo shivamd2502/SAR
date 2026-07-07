@@ -267,23 +267,38 @@ def main():
             scenes_to_process[s] = [p for p in all_patches if p["scene"] == s]
 
     out_paths = []
+    failed_scenes = []
     for scene_name, patches_meta in scenes_to_process.items():
         try:
             out_path = build_scene_shapefile(scene_name, patches_meta, label_lookup)
             out_paths.append(out_path)
-        except Exception as e:
+        except FileNotFoundError as e:
+            print(f"\n[ERROR] Missing file for scene '{scene_name}': {e}")
+            failed_scenes.append(scene_name)
+        except (ValueError, RuntimeError) as e:
             print(f"\n[ERROR] Failed on scene '{scene_name}': {e}")
             import traceback
             traceback.print_exc()
+            failed_scenes.append(scene_name)
 
     print("\n" + "=" * 60)
-    print("DONE!")
+    if failed_scenes:
+        print(f"COMPLETED WITH ERRORS: {len(out_paths)} succeeded, "
+              f"{len(failed_scenes)} failed.")
+        print("Failed scenes:")
+        for s in failed_scenes:
+            print(f"  - {s}")
+    else:
+        print("DONE!")
     print(f"Shapefiles saved in: {QGIS_DIR}")
     for p in out_paths:
         print(f"  {p}")
     print("\nNext step: open these .shp files directly in QGIS")
     print("(drag-and-drop the .shp file — the .shx/.dbf/.prj load automatically)")
     print("=" * 60)
+
+    if failed_scenes:
+        sys.exit(1)
 
 
 if __name__ == "__main__":

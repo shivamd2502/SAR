@@ -18,6 +18,7 @@ ISRO_14/
 """
 
 import os
+import sys
 import numpy as np
 import rasterio
 import glob
@@ -61,14 +62,17 @@ def parse_band_meta(meta_path):
     with open(meta_path, "r") as f:
         for line in f:
             line = line.strip()
-            if "Calibration_Constant_HH" in line:
-                params["calib_hh"] = float(line.split("=")[-1].strip())
-            elif "Calibration_Constant_HV" in line:
-                params["calib_hv"] = float(line.split("=")[-1].strip())
-            elif "Image_Noise_Bias_HH" in line:
-                params["noise_hh"] = float(line.split("=")[-1].strip())
-            elif "Image_Noise_Bias_HV" in line:
-                params["noise_hv"] = float(line.split("=")[-1].strip())
+            try:
+                if "Calibration_Constant_HH" in line:
+                    params["calib_hh"] = float(line.split("=")[-1].strip())
+                elif "Calibration_Constant_HV" in line:
+                    params["calib_hv"] = float(line.split("=")[-1].strip())
+                elif "Image_Noise_Bias_HH" in line:
+                    params["noise_hh"] = float(line.split("=")[-1].strip())
+                elif "Image_Noise_Bias_HV" in line:
+                    params["noise_hv"] = float(line.split("=")[-1].strip())
+            except ValueError as e:
+                print(f"  [WARN] Could not parse line in BAND_META: {line!r} ({e})")
     return params
 
 
@@ -209,27 +213,39 @@ def main():
     if not scene_dirs:
         print(f"ERROR: No scene folders found in {RAW_DIR}")
         print("Expected folders starting with 'E04_SAR_...' inside raw/")
-        return
+        sys.exit(1)
 
     print(f"Found {len(scene_dirs)} scene(s):")
     for d in scene_dirs:
         print(f"  - {os.path.basename(d)}")
 
     processed_files = []
+    failed_scenes = []
     for scene_dir in scene_dirs:
         try:
             stacked, profile = process_scene(scene_dir)
             npy_path = save_processed(stacked, os.path.basename(scene_dir), profile)
             processed_files.append(npy_path)
-        except Exception as e:
+        except FileNotFoundError as e:
+            print(f"\n[ERROR] Missing file for {scene_dir}: {e}")
+            failed_scenes.append(scene_dir)
+        except (ValueError, RuntimeError) as e:
             print(f"\n[ERROR] Failed to process {scene_dir}: {e}")
             import traceback
             traceback.print_exc()
+            failed_scenes.append(scene_dir)
 
     print(f"\n{'='*60}")
-    print(f"DONE! Processed {len(processed_files)} scenes.")
+    print(f"DONE! Processed {len(processed_files)} of {len(scene_dirs)} scenes.")
+    if failed_scenes:
+        print(f"FAILED ({len(failed_scenes)}):")
+        for s in failed_scenes:
+            print(f"  - {os.path.basename(s)}")
     print(f"Files saved to: {PROCESSED_DIR}")
     print(f"\nNext step: Run step2_patch_extraction.py")
+
+    if failed_scenes:
+        sys.exit(1)
 
 
 if __name__ == "__main__":

@@ -77,13 +77,24 @@ def decode_brush_mask(rle_list, width, height):
     painted (255) vs unpainted (0) pixels.
 
     Returns: (H, W) uint8 array, 1 = painted, 0 = not painted
+
+    Raises ValueError if RLE data is severely mismatched with dimensions.
     """
     rle_bytes = bytes(rle_list)
     decoded = decode_rle(rle_bytes)  # flat array of RGBA values
 
     expected_len = width * height * 4
     if len(decoded) != expected_len:
-        # Try cropping/padding defensively
+        size_ratio = len(decoded) / expected_len if expected_len > 0 else 0
+        if size_ratio < 0.5 or size_ratio > 2.0:
+            raise ValueError(
+                f"RLE decoded length ({len(decoded)}) is severely mismatched with "
+                f"expected dimensions {width}x{height}x4 = {expected_len}. "
+                f"Ratio: {size_ratio:.2f}. The annotation may be corrupted."
+            )
+        print(f"  [WARN] RLE length mismatch: got {len(decoded)}, "
+              f"expected {expected_len} ({width}x{height}x4). "
+              f"Adjusting (ratio: {size_ratio:.2f}).")
         if len(decoded) > expected_len:
             decoded = decoded[:expected_len]
         else:
@@ -167,7 +178,12 @@ def process_export(json_path):
             orig_w = result.get("original_width", W)
             orig_h = result.get("original_height", H)
 
-            brush_mask = decode_brush_mask(rle, orig_w, orig_h)
+            try:
+                brush_mask = decode_brush_mask(rle, orig_w, orig_h)
+            except ValueError as e:
+                print(f"  [ERROR] Failed to decode RLE for label '{label_name}': {e}")
+                skipped += 1
+                continue
 
             # Resize if annotation resolution differs from image
             if (orig_w, orig_h) != (W, H):

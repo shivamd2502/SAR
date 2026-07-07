@@ -15,6 +15,7 @@ ISRO_14/
 """
 
 import os
+import sys
 import json
 import numpy as np
 import pandas as pd
@@ -49,6 +50,11 @@ print(f"Using device: {DEVICE}")
 # LOAD MODEL
 # ─────────────────────────────────────────────
 def load_model(model_path, num_classes):
+    if not os.path.exists(model_path):
+        raise FileNotFoundError(
+            f"Model checkpoint not found: {model_path}\n"
+            "Run train_classifier.py first to train and save the model."
+        )
     model = models.efficientnet_b0(weights=None)
     in_features = model.classifier[1].in_features
     model.classifier = nn.Sequential(
@@ -56,12 +62,17 @@ def load_model(model_path, num_classes):
         nn.Linear(in_features, num_classes)
     )
     checkpoint = torch.load(model_path, map_location=DEVICE, weights_only=False)
+    if "model_state_dict" not in checkpoint:
+        raise KeyError(
+            f"Checkpoint at {model_path} does not contain 'model_state_dict'. "
+            f"Keys found: {list(checkpoint.keys())}"
+        )
     model.load_state_dict(checkpoint["model_state_dict"])
     model.to(DEVICE)
     model.eval()
     print(f"Model loaded: {model_path}")
-    print(f"Best val accuracy during training: {checkpoint['val_acc']*100:.1f}%")
-    return model, checkpoint["class_names"]
+    print(f"Best val accuracy during training: {checkpoint.get('val_acc', 0)*100:.1f}%")
+    return model, checkpoint.get("class_names", [])
 
 
 # ─────────────────────────────────────────────
@@ -173,9 +184,16 @@ def main():
     print("=" * 60)
 
     # Load label encoder
+    if not os.path.exists(LABEL_PATH):
+        print(f"ERROR: Label encoder not found: {LABEL_PATH}")
+        print("Run train_classifier.py first to generate label_encoder.json.")
+        sys.exit(1)
     with open(LABEL_PATH) as f:
         label_enc = json.load(f)
     num_classes = len(label_enc)
+    if num_classes == 0:
+        print(f"ERROR: label_encoder.json is empty at {LABEL_PATH}")
+        sys.exit(1)
     class_names = list(label_enc.keys())
     print(f"\nClasses: {class_names}")
 
@@ -184,6 +202,12 @@ def main():
     transform = get_transform()
 
     # Load ground truth labels
+    if not os.path.exists(TEST_LABEL_CSV):
+        print(f"ERROR: Test label CSV not found: {TEST_LABEL_CSV}")
+        sys.exit(1)
+    if not os.path.isdir(TEST_IMG_DIR):
+        print(f"ERROR: Test image directory not found: {TEST_IMG_DIR}")
+        sys.exit(1)
     gt_df = load_ground_truth(TEST_LABEL_CSV, TEST_IMG_DIR, N_IMAGES)
 
     # Run predictions on all images

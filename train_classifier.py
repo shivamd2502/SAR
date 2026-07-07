@@ -20,6 +20,7 @@ Output:
 """
 
 import os
+import sys
 import json
 import numpy as np
 import pandas as pd
@@ -396,6 +397,10 @@ def main():
     if missing:
         print(f"\n[WARN] {len(missing)} image files not found, e.g.: {missing[:3]}")
         df = df[~df["image_name"].isin(missing)]
+    if len(df) == 0:
+        print("ERROR: No valid image/label pairs found. "
+              "Check PATCHES_DIR and LABELS_DIR paths.")
+        sys.exit(1)
     print(f"  Final dataset size: {len(df)} labeled patches")
 
     # Save label encoder
@@ -431,7 +436,12 @@ def main():
 
     # --- Loss & Optimizer ---
     # Compute class weights to handle class imbalance
-    class_counts = df["label_id"].value_counts().sort_index().values
+    class_counts = df["label_id"].value_counts().sort_index().values.astype(np.float64)
+    if np.any(class_counts == 0):
+        zero_classes = [CLASS_NAMES[i] for i, c in enumerate(class_counts) if c == 0]
+        print(f"\n[WARN] Classes with zero samples: {zero_classes}")
+        print("  Using uniform weights for these classes.")
+        class_counts = np.where(class_counts == 0, 1, class_counts)
     class_weights = torch.tensor(
         1.0 / class_counts, dtype=torch.float32
     ).to(DEVICE)
