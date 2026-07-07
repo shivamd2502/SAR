@@ -31,7 +31,7 @@ from sklearn.metrics import confusion_matrix, classification_report
 # ─────────────────────────────────────────────
 # CONFIG — change BASE_DIR if needed
 # ─────────────────────────────────────────────
-BASE_DIR       = r"C:\Users\shiva\OneDrive\Documents\ISRO_14"
+BASE_DIR       = os.environ.get("SAR_BASE_DIR", os.path.join(os.path.dirname(__file__), "data"))
 TEST_IMG_DIR   = os.path.join(BASE_DIR, "ISRO_2", "Images")
 TEST_LABEL_CSV = os.path.join(BASE_DIR, "ISRO_2", "ISRO_2_CSV.csv")
 MODEL_DIR      = os.path.join(BASE_DIR, "model")
@@ -55,7 +55,7 @@ def load_model(model_path, num_classes):
         nn.Dropout(p=0.3, inplace=True),
         nn.Linear(in_features, num_classes)
     )
-    checkpoint = torch.load(model_path, map_location=DEVICE, weights_only=False)
+    checkpoint = torch.load(model_path, map_location=DEVICE, weights_only=True)
     model.load_state_dict(checkpoint["model_state_dict"])
     model.to(DEVICE)
     model.eval()

@@ -52,7 +52,7 @@ except ImportError:
 # ─────────────────────────────────────────────
 # CONFIG
 # ─────────────────────────────────────────────
-BASE_DIR     = r"C:\Users\shiva\OneDrive\Documents\ISRO_14"
+BASE_DIR     = os.environ.get("SAR_BASE_DIR", os.path.join(os.path.dirname(__file__), "data"))
 RAW_DIR      = os.path.join(BASE_DIR, "raw")
 PATCHES_DIR  = os.path.join(BASE_DIR, "patches")
 LABELS_DIR   = os.path.join(BASE_DIR, "Labels")

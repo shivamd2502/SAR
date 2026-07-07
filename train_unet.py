@@ -38,7 +38,7 @@ except ImportError:
     raise SystemExit(1)
 
 # ─────────────────────────────────────────────
-BASE_DIR  = r"C:\Users\shiva\OneDrive\Documents\ISRO_14"
+BASE_DIR  = os.environ.get("SAR_BASE_DIR", os.path.join(os.path.dirname(__file__), "data"))
 IMG_DIR   = os.path.join(BASE_DIR, "seg_to_label")
 MASK_DIR  = os.path.join(BASE_DIR, "masks_seg")
 MODEL_DIR = os.path.join(BASE_DIR, "model_seg")
@@ -318,7 +318,7 @@ def main():
 
     # ── Validation prediction visualizations ──
     print("\n[7] Generating validation prediction visualizations...")
-    checkpoint = torch.load(best_path, map_location=DEVICE, weights_only=False)
+    checkpoint = torch.load(best_path, map_location=DEVICE, weights_only=True)
     model.load_state_dict(checkpoint["model_state_dict"])
     model.eval()
 

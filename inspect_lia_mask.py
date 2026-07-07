@@ -22,7 +22,7 @@ import rasterio
 import matplotlib.pyplot as plt
 
 # ─────────────────────────────────────────────
-BASE_DIR = r"C:\Users\shiva\OneDrive\Documents\ISRO_14"
+BASE_DIR = os.environ.get("SAR_BASE_DIR", os.path.join(os.path.dirname(__file__), "data"))
 RAW_DIR  = os.path.join(BASE_DIR, "raw")
 OUT_DIR  = os.path.join(BASE_DIR, "inspect_lia_mask")
 os.makedirs(OUT_DIR, exist_ok=True)

@@ -21,7 +21,7 @@ from pathlib import Path
 # ─────────────────────────────────────────────
 # CONFIG
 # ─────────────────────────────────────────────
-BASE_DIR     = r"C:\Users\shiva\OneDrive\Documents\ISRO_14"   # ← CHANGE THIS  ###C:\Users\shiva\OneDrive\Documents\ISRO_14
+BASE_DIR     = os.environ.get("SAR_BASE_DIR", os.path.join(os.path.dirname(__file__), "data"))
 PROCESSED_DIR = os.path.join(BASE_DIR, "processed")
 PATCHES_DIR   = os.path.join(BASE_DIR, "patches")
 os.makedirs(PATCHES_DIR, exist_ok=True)

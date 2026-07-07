@@ -18,7 +18,7 @@ import shutil
 from PIL import Image
 
 # ─────────────────────────────────────────────
-BASE_DIR       = r"C:\Users\shiva\OneDrive\Documents\ISRO_14"
+BASE_DIR       = os.environ.get("SAR_BASE_DIR", os.path.join(os.path.dirname(__file__), "data"))
 PATCHES_PNG    = os.path.join(BASE_DIR, "patches_png")
 SEG_LABEL_DIR  = os.path.join(BASE_DIR, "seg_to_label")   # folder to upload to Label Studio
 N_TO_SELECT    = 50   # how many patches to select for labeling

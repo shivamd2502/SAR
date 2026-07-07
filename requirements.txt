@@ -15,40 +15,40 @@
 # ============================================================
 
 # ── Core scientific stack ──────────────────────────────────
-numpy>=1.24.0
-pandas>=2.0.0
-scipy>=1.10.0
+numpy>=1.24.0,<3.0.0
+pandas>=2.0.0,<3.0.0
+scipy>=1.10.0,<2.0.0
 
 # ── Geospatial / SAR data reading ─────────────────────────
-rasterio>=1.3.0          # reads GeoTIFF files with GPS metadata
-geopandas>=0.14.0        # creates shapefiles for QGIS
-shapely>=2.0.0           # geometry (polygon building for shapefiles)
-fiona>=1.9.0             # shapefile I/O backend for geopandas
-pyproj>=3.5.0            # CRS / coordinate reprojection
+rasterio>=1.3.0,<2.0.0   # reads GeoTIFF files with GPS metadata
+geopandas>=0.14.0,<2.0.0 # creates shapefiles for QGIS
+shapely>=2.0.0,<3.0.0    # geometry (polygon building for shapefiles)
+fiona>=1.9.0,<2.0.0      # shapefile I/O backend for geopandas
+pyproj>=3.5.0,<4.0.0     # CRS / coordinate reprojection
 
 # ── Image processing ──────────────────────────────────────
-Pillow>=10.0.0           # PNG/JPEG read-write for patches
+Pillow>=10.0.0,<12.0.0   # PNG/JPEG read-write for patches
 
 # ── Deep learning ─────────────────────────────────────────
-torch>=2.1.0             # PyTorch core
-torchvision>=0.16.0      # pretrained models (EfficientNet-B0, ResNet34)
-segmentation-models-pytorch>=0.3.3  # U-Net with pretrained encoders
+torch>=2.1.0,<3.0.0      # PyTorch core
+torchvision>=0.16.0,<1.0.0  # pretrained models (EfficientNet-B0, ResNet34)
+segmentation-models-pytorch>=0.3.3,<1.0.0  # U-Net with pretrained encoders
 
 # ── Visualization ─────────────────────────────────────────
-matplotlib>=3.7.0
-seaborn>=0.12.0
+matplotlib>=3.7.0,<4.0.0
+seaborn>=0.12.0,<1.0.0
 
 # ── Machine learning utilities ────────────────────────────
-scikit-learn>=1.3.0      # train_test_split, metrics, confusion matrix
+scikit-learn>=1.3.0,<2.0.0  # train_test_split, metrics, confusion matrix
 
 # ── Label Studio mask conversion ──────────────────────────
-label-studio-sdk>=0.0.32 # official RLE brush mask decoder
+label-studio-sdk>=0.0.32,<1.0.0  # official RLE brush mask decoder
 
 # ── Excel / CSV label loading ─────────────────────────────
-openpyxl>=3.1.0          # reads .xlsx files if needed
+openpyxl>=3.1.0,<4.0.0   # reads .xlsx files if needed
 
 # ── Hugging Face (needed by segmentation-models-pytorch) ──
-huggingface-hub>=0.19.0
+huggingface-hub>=0.19.0,<1.0.0
 
 # ── Optional but recommended ──────────────────────────────
 # tqdm>=4.65.0           # progress bars (nice to have for long loops)

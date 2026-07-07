@@ -88,7 +88,7 @@ except ImportError:
 # =============================================================================
 # PATHS  — edit if needed
 # =============================================================================
-BASE_DIR       = r"D:\ISRO_14"
+BASE_DIR       = os.environ.get("SAR_BASE_DIR", os.path.join(os.path.dirname(__file__), "data"))
 COMPOSITE_TIF  = os.path.join(
     BASE_DIR, "composites", "03JUN2026",
     "OPT1_R-HH-sigma0_G-HV-sigma0_B-ratio-sigma0.tif")
@@ -182,7 +182,7 @@ def load_model(model_dir: str):
 
     # model weights
     ckpt_path = os.path.join(model_dir, "best_model.pth")
-    ckpt      = torch.load(ckpt_path, map_location=DEVICE)
+    ckpt      = torch.load(ckpt_path, map_location=DEVICE, weights_only=True)
     model     = EOS04Classifier(num_classes=num_classes).to(DEVICE)
     model.load_state_dict(ckpt["model_state_dict"])
     model.eval()
