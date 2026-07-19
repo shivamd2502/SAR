@@ -71,6 +71,11 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # LOAD MODEL
 # ─────────────────────────────────────────────
 def load_model():
+    if not os.path.exists(MODEL_PATH):
+        raise FileNotFoundError(
+            f"U-Net checkpoint not found: {MODEL_PATH}\n"
+            "Run train_unet.py first to train and save the segmentation model."
+        )
     model = smp.Unet(
         encoder_name="resnet34",
         encoder_weights=None,   # weights come from checkpoint, not ImageNet, on load
@@ -79,6 +84,11 @@ def load_model():
     ).to(DEVICE)
 
     checkpoint = torch.load(MODEL_PATH, map_location=DEVICE, weights_only=False)
+    if "model_state_dict" not in checkpoint:
+        raise KeyError(
+            f"Checkpoint at {MODEL_PATH} does not contain 'model_state_dict'. "
+            f"Keys found: {list(checkpoint.keys())}"
+        )
     model.load_state_dict(checkpoint["model_state_dict"])
     model.eval()
 
@@ -175,6 +185,7 @@ def stitch_scene(scene_name, patches_meta, model, transform):
     # Track coverage so unfilled (no-data / edge) regions stay distinguishable
     covered = np.zeros((H, W), dtype=bool)
 
+    missing_count = 0
     print(f"\nRunning predictions and stitching {len(patches_meta)} patches...")
     for i, p in enumerate(patches_meta):
         patch_id = p["patch_id"]
@@ -182,7 +193,11 @@ def stitch_scene(scene_name, patches_meta, model, transform):
 
         img_path = os.path.join(PATCHES_PNG, f"{patch_id}.png")
         if not os.path.exists(img_path):
-            print(f"  [WARN] Missing PNG for {patch_id}, skipping")
+            missing_count += 1
+            if missing_count <= 5:
+                print(f"  [WARN] Missing PNG for {patch_id}, skipping")
+            elif missing_count == 6:
+                print("  [WARN] Further missing-patch warnings suppressed...")
             continue
 
         pred = predict_patch(model, transform, img_path)  # (256,256) uint8
@@ -197,6 +212,17 @@ def stitch_scene(scene_name, patches_meta, model, transform):
 
         if (i + 1) % 200 == 0:
             print(f"  {i + 1}/{len(patches_meta)} patches placed...")
+
+    if missing_count > 0:
+        print(f"\n[WARN] {missing_count} of {len(patches_meta)} patches were missing "
+              f"({missing_count/len(patches_meta)*100:.1f}%).")
+        if missing_count > len(patches_meta) * 0.5:
+            print("  [ERROR] More than 50% of patches are missing. "
+                  "Check PATCHES_PNG directory path.")
+            raise FileNotFoundError(
+                f"Too many missing patch images ({missing_count}/{len(patches_meta)}). "
+                f"Verify patches exist in: {PATCHES_PNG}"
+            )
 
     n_uncovered = (~covered).sum()
     if n_uncovered > 0:

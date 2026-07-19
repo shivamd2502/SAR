@@ -102,14 +102,31 @@ class SARSegDataset(Dataset):
 
 def build_pairs():
     mask_files = sorted(glob.glob(os.path.join(MASK_DIR, "*_mask.png")))
+    if not mask_files:
+        raise FileNotFoundError(
+            f"No mask files (*_mask.png) found in {MASK_DIR}. "
+            "Run convert_masks.py first to generate segmentation masks."
+        )
     pairs = []
+    missing_images = []
     for mp in mask_files:
         img_name = os.path.basename(mp).replace("_mask.png", ".png")
         ip = os.path.join(IMG_DIR, img_name)
         if os.path.exists(ip):
             pairs.append((ip, mp))
         else:
-            print(f"  [WARN] No matching image for {mp}")
+            missing_images.append(img_name)
+    if missing_images:
+        print(f"  [WARN] {len(missing_images)} mask files have no matching image:")
+        for name in missing_images[:5]:
+            print(f"    - {name}")
+        if len(missing_images) > 5:
+            print(f"    ... and {len(missing_images) - 5} more")
+    if not pairs:
+        raise FileNotFoundError(
+            f"No valid image/mask pairs found. "
+            f"Check that images exist in {IMG_DIR} matching masks in {MASK_DIR}."
+        )
     return pairs
 
 
@@ -212,7 +229,10 @@ def main():
     print("\n[1] Building image/mask pairs...")
     pairs = build_pairs()
     print(f"  Found {len(pairs)} labeled pairs.")
-    if len(pairs) < 10:
+    if len(pairs) < 5:
+        print("  ERROR: Too few labeled samples (need at least 5 for train/val split).")
+        raise SystemExit(1)
+    elif len(pairs) < 10:
         print("  WARNING: very few labeled samples — results will be noisy.")
 
     np.random.shuffle(pairs)
